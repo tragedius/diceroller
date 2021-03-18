@@ -1,25 +1,25 @@
 #!/bin/bash
 # Dice roller for World of Darkness's RPGs
 
-DEFAULT_DICES=10
-DEFAULT_TARGET_NUMBER=6
-DEFAULT_SKILL_DICES=0
-set ROLLITUP
-unset ADDROLL
+default_dices=10
+default_target_number=6
+default_skill_dices=0
+set rollitup
+unset addroll
 
-if [[ `tput colors` -gt 7 ]]
+if [[ $(tput colors) -gt 7 ]]
 then
-      WEHAVECOLORS=1
+      wehavecolors=1
 fi
 
 function number_of_dices {
-	echo "Enter total number of dices (${DEFAULT_DICES}):"
-	read DICES
-	if [ -z ${DICES} ]
+	echo "Enter total number of dices (${default_dices}):"
+	read -r dices
+	if [ -z "${dices}" ]
 	then
-		DICES=${DEFAULT_DICES}
+		dices="${default_dices}"
 	else
-		if [[ ${DICES} -lt 1 ]]
+		if [[ "${dices}" -lt 1 ]]
 		then
 			echo "If I don't have any die, how you expect I will roll?"
 			number_of_dices
@@ -29,78 +29,78 @@ function number_of_dices {
 	}
 
 function skill {
-	echo "skill dices of it (${DEFAULT_SKILL_DICES})"
-	read SKILL_DICES
-	if [ -z ${SKILL_DICES} ]
+	echo "skill dices of it (${default_skill_dices})"
+	read -r skill_dices
+	if [ -z "${skill_dices}" ]
 	then
-		SKILL_DICES=${DEFAULT_SKILL_DICES}
+		skill_dices="${default_skill_dices}"
 	fi
 	}	
 
 function target {
-	echo "Enter target number (${DEFAULT_TARGET_NUMBER})"
-	read TARGET_NUMBER
-	if [ -z ${TARGET_NUMBER} ]
+	echo "Enter target number (${default_target_number})"
+	read -r target_number
+	if [ -z "${target_number}" ]
 	then
-		TARGET_NUMBER=${DEFAULT_TARGET_NUMBER}
+		target_number="${default_target_number}"
 	fi
 	}
 
 function addroll {
 	echo "Add roll 10s on skill dices? (y/N)?"
-	read ADDROLL
-	if [ "${ADDROLL}" != "y" ]
+	read -r addroll
+	if [ "${addroll}" != "y" ]
 	then
-		unset ADDROLL
+		unset addroll
 	fi
 	}
 
 function roll {
 	# params: <number of dices>, <reroll boolean>
 	local dice_count=1
-	while [[ $dice_count -le ${1} ]]
+	while [[ "${dice_count}" -le "${1}" ]]
        	do
-		local R=$(($RANDOM%10+1))
-		local ROLLS="${ROLLS} ${R}"
-		if [[ ${R} -ge ${TARGET_NUMBER} ]]
+		local r=$((RANDOM%10+1))
+		local rolls="${rolls} ${r}"
+		if [[ "${r}" -ge "${target_number}" ]]
 		then
-			SUCCESSES=$((${SUCCESSES}+1))
-			if [ $2 ]
+			successes=$((successes+1))
+			if [ "${2}" ]
 			then
-				if [[ ${R} -eq 10 ]]
+				if [[ "${r}" -eq 10 ]]
 				then
-					REROLLS=$((${REROLLS}+1))
-					local RR=$(($RANDOM%10+1))
-					local ROLLS="${ROLLS} (${RR})"
-					if [[ $RR -ge $TARGET_NUMBER ]]
+					rerolls=$((rerolls+1))
+					local rr=$((RANDOM%10+1))
+					local rolls="${rolls} (${rr})"
+					if [[ "${rr}" -ge "${target_number}" ]]
 					then
-						SUCCESSES=$(($SUCCESSES+1))
+						successes=$((successes+1))
 					fi
 				fi
 			fi
-		elif [[ ${R} -eq 1 ]]
+		elif [[ "${r}" -eq 1 ]]
 		then
-			BOTCH=$((${BOTCH}+1))
+			botch=$((botch+1))
 		fi
-		dice_count=$(($dice_count+1))
+		dice_count=$((dice_count+1))
 	done
-	if [ $WEHAVECOLORS ]
+	if [ "${wehavecolors}" ]
 	then
-		for dice_roll in $ROLLS
+		for die_roll in ${rolls}
 		do
-			if [[ $dice_roll -ge $TARGET_NUMBER ]]
+			if [[ "${die_roll}" -ge "${target_number}" ]]
 			then
-				printf "\e[1;49;32m$dice_roll\e[0m "
-			elif [[ $dice_roll -eq 1 ]]
+				printf "\e[1;49;32m%s\e[0m " "${die_roll}"
+			elif [[ "${die_roll}" -eq 1 ]]
 			then
-				printf "\e[1;49;31m$dice_roll\e[0m "
+				printf "\e[1;49;31m%s\e[0m " "${die_roll}"
 			else
-				printf "$dice_roll "
+				printf "%s " "${die_roll}"
 			fi
 		done
 		echo
 	else 
-		echo $ROLLS
+		echo "${rolls}"
 	fi
 	}
 
@@ -108,21 +108,21 @@ echo "DICE ROLLER"
 echo "for World of Darkness's RPGs"
 echo
 
-until [ $ROLLITUP ]
+until [ "${rollitup}" ]
 do
-	SUCCESSES=0
-	BOTCH=0
-	REROLLS=0
+	successes=0
+	botch=0
+	rerolls=0
 	number_of_dices
 	skill
-	ATTRIBUTE_DICES=$((${DICES}-${SKILL_DICES}))
-	if [[ ${ATTRIBUTE_DICES} -lt 0 ]]
+	attribute_dices=$((dices-skill_dices))
+	if [[ "${attribute_dices}" -lt 0 ]]
 	then
 		echo "You can't have more skill then attribute dices!"
 		skill
 	fi
 	target
-	if [[ ${SKILL_DICES} -gt 0 ]]
+	if [[ "${skill_dices}" -gt 0 ]]
 	then
 		addroll
 	fi
@@ -131,42 +131,43 @@ do
 	echo "Alea acta est!"
 	echo
 	printf "Attribute dices rolls: "
-	roll ${ATTRIBUTE_DICES}
-	if [[ ${SKILL_DICES} -gt 0 ]]
+	roll "${attribute_dices}"
+	if [[ "${skill_dices}" -gt 0 ]]
 	then 
 		printf "Skill dices rolls: "
-		if [ ${ADDROLL} ]
+		if [ "${addroll}" ]
 		then
-			roll ${SKILL_DICES} 1
+			roll "${skill_dices}" 1
 		else
-			roll ${SKILL_DICES}
+			roll "${skill_dices}"
 		fi
 	fi
 
 	# ------------------------------ RESULT ------------------------------
 
-	if [[ ${BOTCH} -gt ${SUCCESSES} ]]
+	if [[ "${botch}" -gt "${successes}" ]]
 	then
 		echo
-		echo "!!! BOTCH !!!"
-		echo "Your roll have more crtical failures then successes"
+		printf "\e[1;49;31m !!! BOTCH !!! \e[0m "
+		echo
+		echo "You roll more crtical failures then successes."
 	else 
-		if [ -n "$BOTCH" ]
+		if [ -n "${botch}" ]
 		then
-			FINAL_SUCCESSES=$((${SUCCESSES}-${BOTCH}))
-			echo "Substracted dies: ${BOTCH}"
+			final_successes=$((successes-botch))
+			echo "Substracted dies: ${botch}"
 		else
-			FINAL_SUCCESSES="$SUCCESSES"
+			final_successes="${successes}"
 		fi
 		echo
-		echo "Final number of successes: ${FINAL_SUCCESSES}"
+		echo "Final number of successes: ${final_successes}"
 	fi
 	echo
 	echo "Another roll? (Y/n)"
-	read ANOTHER_ROLL
-	if [ -n "${ANOTHER_ROLL}" ]
+	read -r another_roll
+	if [ -n "${another_roll}" ]
 	then
-		if [ ${ANOTHER_ROLL} != "y" ]
+		if [ "${another_roll}" != "y" ]
 		then
 			exit 0
 		fi
